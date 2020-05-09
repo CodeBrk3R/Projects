@@ -25,4 +25,6 @@ while x<len(newstitles):
     x=x+1
     
 for link in links:
-  print(link.text)
+    print(link.get("href"))
+  
+  
