@@ -1,0 +1,28 @@
+import requests
+from bs4 import BeautifulSoup
+
+
+k_url="https://kotaku.com/"
+data=requests.get(k_url)
+soup=BeautifulSoup(data.content,'html.parser')
+
+titles = soup.find_all("h2", "sc-759qgu-0 sc-3kpz0l-8 hpTFkz sc-759qgu-1 clnAlD")
+links = soup.find_all("a")
+articles=soup.find_all("p","sc-77igqf-0 hJpRRP")
+
+newstitles=[]
+newsarticles=[]
+
+for item in titles:
+    newstitles.append(item.text)
+    
+for thing in articles:
+    newsarticles.append(thing.text)
+
+x=0
+while x<len(newstitles):
+    print(f"{newstitles[x]}\n{newsarticles[x]}\n\n")
+    x=x+1
+    
+for link in links:
+  print(link.text)
