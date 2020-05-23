@@ -1,0 +1,61 @@
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup as bs
+import datetime
+from datetime import date
+import PySimpleGUI as sg
+
+pd.set_option('display.max_colwidth', -1)
+today = date.today()
+sg.theme('DarkAmber')
+
+layout = [[sg.Text('Enter a stock ticker')],
+          [sg.Output(size=(90, 8), key='-OUTPUT-')],
+          [sg.Input()],
+          [sg.Button('Submit'), sg.Button('Save to file'), sg.Exit()]]
+
+window = sg.Window('Stock Headline Scraper', layout)
+
+params = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',
+    'format': 'xml'}
+
+while True:
+    event, values = window.read()
+    selectedSTOCK = values[0]
+
+    url = "https://finance.yahoo.com/quote/" + selectedSTOCK + "?p=" + selectedSTOCK
+    resp = requests.get(url, params=params)
+    soup = bs(resp.content, 'html.parser')
+
+    yahooLINK = "https://finance.yahoo.com"
+    links = []
+    headlines = soup.findAll("h3", "Mb(5px)")
+    stock_headlines = []
+
+    for thing in headlines:
+        stock_headlines.append(thing.text)
+        link = thing.find("a").get("href")
+        if str(link).endswith(".html"):
+            url_complete = yahooLINK + link
+            links.append(url_complete)
+        else:
+            links.append(thing.find("a").get("href"))
+
+        stock_df = pd.DataFrame({"headlines": stock_headlines, "links": links})
+        if event == "Submit":
+            window['-OUTPUT-'].update(stock_df["headlines"])
+
+        if event == "Save to file":
+            x = 0
+            stock_df = pd.DataFrame({"headlines": stock_headlines, "links": links})
+            try:
+                stock_df.to_excel(selectedSTOCK + "_Headlines " + str(today) + ".xlsx", "w")
+            except PermissionError:
+                x + 1
+                stock_df.to_excel(selectedSTOCK + "_Headlines " + str(today) + "_"+str(x) + ".xlsx", "w")
+
+    if event in (None, 'Exit'):
+        break
+
+window.close()
