@@ -1,0 +1,24 @@
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup as bs
+from datetime import date
+import PySimpleGUI as sg    
+
+
+pd.set_option('display.max_colwidth', -1)
+today = date.today()
+
+stock =input("Enter tiker for stock headlines\n")
+
+params = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36','format':'xml'}
+url = "https://www.gurufocus.com/stock/"+stock+"/article"
+resp = requests.get(url,params=params)
+soup=bs(resp.content,'html.parser')
+
+
+df = pd.read_html(resp.text)
+df[0].rename(columns={0:'date',1:'Headlines'}, inplace=True)
+df[0].fillna("New DAY",inplace=True)
+answer = "Articles found HERE===> "+str(url)
+print(answer)
+df[0]
